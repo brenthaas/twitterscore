@@ -3,16 +3,19 @@ require 'rails_helper'
 describe UsersController do
   let(:handle) { 'loquie' }
 
-  it "displays a user" do
-    VCR.use_cassette('get user loquie') do
+  describe "#profile" do
+    it "gets the profile from TwitterAgent" do
+      expect_any_instance_of(TwitterAgent).to receive(:profile).with(handle)
       get :profile, handle: handle
     end
-    expect(response.status).to eq(200)
-    expect(json_response_body['screen_name']).to eq(handle)
   end
 
-  it "requires that handle param is passed" do
-    get :profile, handle: ''
-    expect(response.status).to eq(422)
+  describe "#recent_tweets" do
+    it "gets the recent tweets from TwitterAgent" do
+      expect_any_instance_of(TwitterAgent).to(
+        receive(:recent_tweets).with(handle)
+      )
+      get :recent_tweets, handle: handle
+    end
   end
 end
