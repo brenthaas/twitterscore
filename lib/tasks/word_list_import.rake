@@ -27,6 +27,6 @@ end
 
 def add_words(words, weight)
   words.each do |word|
-    WeightedWord.create(word: word, weight: weight)
+    WeightedWord.create(word: word.downcase, weight: weight)
   end
 end

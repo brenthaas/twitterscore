@@ -36,4 +36,43 @@ describe TwitterAgent do
       subject.recent_tweets(user)
     end
   end
+
+  describe "#score_text" do
+    let(:positive_words) { %w(happy joy) }
+    let(:negative_words) { %w(boo hate) }
+
+    before do
+      positive_words.each do |word|
+        WeightedWord.create(word: word, weight: 1)
+      end
+      negative_words.each do |word|
+        WeightedWord.create(word: word, weight: -1)
+      end
+    end
+
+    shared_examples "gets the correct sum" do
+      it { expect(subject.score_text(text)).to eq(score) }
+    end
+
+    context "with positive words" do
+      let(:text) { "happy people happy joy" }
+      let(:score) { 3 }
+
+      it_behaves_like "gets the correct sum"
+    end
+
+    context "with negative words" do
+      let(:text) { "Boo I hate this" }
+      let(:score) { -2 }
+
+      it_behaves_like "gets the correct sum"
+    end
+
+    context "with punctuation" do
+      let(:text) { "Happy, happy, (Joy) joy! Boo." }
+      let(:score) { 3 }
+
+      it_behaves_like "gets the correct sum"
+    end
+  end
 end
