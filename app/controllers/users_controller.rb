@@ -1,8 +1,7 @@
 class UsersController < ApplicationController
 
   def profile
-    profile = agent.profile(handle)
-    render json: profile.to_h.merge({reputation_score: agent.score(handle)})
+    render json: agent.profile(handle)
   end
 
   def recent_tweets
@@ -11,6 +10,10 @@ class UsersController < ApplicationController
       timeline = filter_by_retweet_count(timeline, params[:min_retweets])
     end
     render json: timeline, only: [:created_at, :text, :retweet_count]
+  end
+
+  def score
+    render json: { reputation_score: agent.score(handle) }
   end
 
   private
