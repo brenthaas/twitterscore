@@ -11,6 +11,18 @@ class TwitterAgent
     @client.user_timeline(user, {count: count})
   end
 
+  def followers(user)
+    @client.followers(user).map(&:screen_name)
+  end
+
+  private
+
+  def score_user(user)
+    recent_tweets(user).map(&:text).reduce(0) do |sum, tweet|
+      sum += score_text(tweet)
+    end
+  end
+
   def score_text(text)
     words = text.split(/\W+/)
     word_counts = words.each_with_object(Hash.new(0)) do |word, counts|

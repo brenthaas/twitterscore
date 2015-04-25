@@ -6,10 +6,25 @@ describe TwitterAgent do
 
   subject { described_class.new(client) }
 
-  describe "#profile_for" do
+  describe "#profile" do
+    before do
+      allow(client).to receive(:user_timeline).and_return([])
+    end
+
     it "looks up a user" do
       expect(client).to receive(:user).with(user)
       subject.profile(user)
+    end
+  end
+
+  describe "#followers" do
+    let(:follower1) { instance_double(Twitter::User, screen_name: "foo") }
+    let(:followers) { [follower1] }
+
+    before { allow(client).to receive(:followers).with(user).and_return(followers) }
+
+    it "gives a list of the screen_names of followers" do
+      expect(subject.followers(user)).to eq(['foo'])
     end
   end
 
@@ -37,7 +52,7 @@ describe TwitterAgent do
     end
   end
 
-  describe "#score_text" do
+  describe "scoring tweets" do
     let(:positive_words) { %w(happy joy) }
     let(:negative_words) { %w(boo hate) }
 
@@ -50,29 +65,48 @@ describe TwitterAgent do
       end
     end
 
-    shared_examples "gets the correct sum" do
-      it { expect(subject.score_text(text)).to eq(score) }
+    describe "#score_user" do
+      let(:tweet1_text) { "Happy, happy, Joy, joy! Joy & Happy" }
+      let(:tweet1_score) { 6 }
+      let(:tweet1) { double(Twitter::Tweet, text: tweet1_text) }
+      let(:tweet2_text) { "Boo, I hate this" }
+      let(:tweet2_score) { -2 }
+      let(:tweet2) { double(Twitter::Tweet, text: tweet2_text) }
+      let(:tweets) { [tweet1, tweet2] }
+      let(:total_score) { tweet1_score + tweet2_score }
+
+      before { allow(subject).to receive(:recent_tweets).and_return(tweets) }
+
+      it "scores the users tweets" do
+        expect(subject.send(:score_user, user)).to eq(total_score)
+      end
     end
 
-    context "with positive words" do
-      let(:text) { "happy people happy joy" }
-      let(:score) { 3 }
+    describe "#score_text" do
+      shared_examples "gets the correct sum" do
+        it { expect(subject.send(:score_text, text)).to eq(score) }
+      end
 
-      it_behaves_like "gets the correct sum"
-    end
+      context "with positive words" do
+        let(:text) { "happy people happy joy" }
+        let(:score) { 3 }
 
-    context "with negative words" do
-      let(:text) { "Boo I hate this" }
-      let(:score) { -2 }
+        it_behaves_like "gets the correct sum"
+      end
 
-      it_behaves_like "gets the correct sum"
-    end
+      context "with negative words" do
+        let(:text) { "Boo I hate this" }
+        let(:score) { -2 }
 
-    context "with punctuation" do
-      let(:text) { "Happy, happy, (Joy) joy! Boo." }
-      let(:score) { 3 }
+        it_behaves_like "gets the correct sum"
+      end
 
-      it_behaves_like "gets the correct sum"
+      context "with punctuation" do
+        let(:text) { "Happy, happy, (Joy) joy! Boo." }
+        let(:score) { 3 }
+
+        it_behaves_like "gets the correct sum"
+      end
     end
   end
 end
