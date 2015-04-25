@@ -7,6 +7,10 @@ class TwitterAgent
     @client.user(user)
   end
 
+  def recent_tweets(user, count= 50)
+    @client.user_timeline(user, {count: count})
+  end
+
   def score_text(text)
     words = text.split(/\W+/)
     word_counts = words.each_with_object(Hash.new(0)) do |word, counts|
@@ -14,12 +18,6 @@ class TwitterAgent
     end
     score_word_counts(word_counts)
   end
-
-  def recent_tweets(user, count= 50)
-    tweets = @client.user_timeline(user, {count: count})
-  end
-
-  private
 
   def score_word_counts(word_counts)
     word_counts.reduce(0) do |sum, (word, count)|
