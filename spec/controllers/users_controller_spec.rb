@@ -4,8 +4,15 @@ describe UsersController do
   let(:handle) { 'loquie' }
 
   describe "#profile" do
+
+    before do
+      allow_any_instance_of(TwitterAgent).to receive(:score).and_return(30)
+    end
+
     it "gets the profile from TwitterAgent" do
-      expect_any_instance_of(TwitterAgent).to receive(:profile).with(handle)
+      expect_any_instance_of(TwitterAgent).to(
+        receive(:profile).with(handle).and_return({})
+      )
       get :profile, handle: handle
     end
   end

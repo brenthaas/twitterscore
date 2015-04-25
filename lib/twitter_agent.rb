@@ -7,8 +7,18 @@ class TwitterAgent
     @client.user(user)
   end
 
+  def score(user)
+    score = score_user(user)
+    follower_score = followers(user).reduce(0) { |sum, u| sum += score_user(u) }
+    (score * 2) + follower_score
+  end
+
   def recent_tweets(user, count= 50)
-    @client.user_timeline(user, {count: count})
+    begin
+      @client.user_timeline(user, {count: count})
+    rescue Twitter::Error::Unauthorized
+      []
+    end
   end
 
   def followers(user)
@@ -20,11 +30,11 @@ class TwitterAgent
   def score_user(user)
     recent_tweets(user).map(&:text).reduce(0) do |sum, tweet|
       sum += score_text(tweet)
-    end
+    end || 0
   end
 
   def score_text(text)
-    words = text.split(/\W+/)
+    words = text.split(/[^\w\-@]+/)
     word_counts = words.each_with_object(Hash.new(0)) do |word, counts|
       counts[word] += 1
     end

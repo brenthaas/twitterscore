@@ -9,11 +9,27 @@ describe TwitterAgent do
   describe "#profile" do
     before do
       allow(client).to receive(:user_timeline).and_return([])
+      allow(client).to receive(:followers).and_return([])
     end
 
     it "looks up a user" do
       expect(client).to receive(:user).with(user)
       subject.profile(user)
+    end
+  end
+
+  describe "#score" do
+    let(:follower_name) { 'fan' }
+    let(:follower) { double(Twitter::User, screen_name: follower_name) }
+
+    before do
+      allow(client).to receive(:followers).and_return([follower])
+      allow(subject).to receive(:score_user).with(user).and_return(10)
+      allow(subject).to receive(:score_user).with(follower_name).and_return(5)
+    end
+
+    it "scores the user and their followers" do
+      expect(subject.score(user)).to eq 25
     end
   end
 
@@ -104,6 +120,21 @@ describe TwitterAgent do
       context "with punctuation" do
         let(:text) { "Happy, happy, (Joy) joy! Boo." }
         let(:score) { 3 }
+
+        it_behaves_like "gets the correct sum"
+      end
+
+      context "with a weighted word name" do
+        let(:text) { "I hate @happy" }
+        let(:score) { -1 }
+
+        it_behaves_like "gets the correct sum"
+      end
+
+      context "with a matching hyphenated word" do
+        let(:negative_words) { %w(2-faced) }
+        let(:text) { "2-faced" }
+        let(:score) { -1 }
 
         it_behaves_like "gets the correct sum"
       end

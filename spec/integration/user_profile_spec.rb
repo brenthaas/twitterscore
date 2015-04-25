@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe "Getting a user profile" do
   let(:handle) { 'loquie' }
-  let(:fields) { %w(name screen_name location) }
+  let(:fields) { %w(name screen_name location reputation_score) }
 
   it "responds with all necessary fields" do
     VCR.use_cassette("get user #{handle}") do
