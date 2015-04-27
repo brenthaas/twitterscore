@@ -9,7 +9,7 @@ class TwitterAgent
 
   def score(user)
     score = score_user(user)
-    follower_score = followers(user).reduce(0) { |sum, u| sum += score_user(u) }
+    follower_score = score_followers(user)
     (score * 2) + follower_score
   end
 
@@ -17,15 +17,23 @@ class TwitterAgent
     begin
       @client.user_timeline(user, {count: count})
     rescue Twitter::Error::Unauthorized
-      []
+      []       # In case we can't view the user timeline
     end
   end
 
   def followers(user)
-    @client.followers(user).map(&:screen_name)
+    @client.followers(user).limit(20).map(&:screen_name)
   end
 
   private
+
+  def score_followers(user)
+    follower_statuses = @client.
+                          followers(user).
+                          first(20).
+                          map { |fol| fol.status.text.to_s }
+    follower_statuses.reduce(0) { |sum, text| sum += score_text(text) }
+  end
 
   def score_user(user)
     recent_tweets(user).map(&:text).reduce(0) do |sum, tweet|

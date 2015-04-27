@@ -7,7 +7,7 @@ class UsersController < ApplicationController
   def recent_tweets
     timeline = agent.recent_tweets(handle)
     if params[:min_retweets].present?
-      timeline = filter_by_retweet_count(timeline, params[:min_retweets])
+      timeline = filter_by_retweet_count(timeline, params[:min_retweets].to_i)
     end
     render json: timeline, only: [:created_at, :text, :retweet_count]
   end
