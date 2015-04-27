@@ -11,6 +11,10 @@ class ApplicationController < ActionController::Base
     render json: {error: exception.message}, status: 429
   end
 
+  rescue_from 'Twitter::Error::NotFound' do |exception|
+    render json: {error: exception.message}, status: 404
+  end
+
   def twitter_client
     Twitter::REST::Client.new do |config|
       config.consumer_key = ENV['TWITTER_CONSUMER_KEY']
