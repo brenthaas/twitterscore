@@ -22,7 +22,7 @@ class TwitterAgent
   end
 
   def followers(user)
-    @client.followers(user).limit(20).map(&:screen_name)
+    @client.followers(user).limit(50).map(&:screen_name)
   end
 
   private
@@ -30,7 +30,7 @@ class TwitterAgent
   def score_followers(user)
     follower_statuses = @client.
                           followers(user).
-                          first(20).
+                          first(50).
                           map { |fol| fol.status.text.to_s }
     follower_statuses.reduce(0) { |sum, text| sum += score_text(text) }
   end
